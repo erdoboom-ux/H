@@ -3,7 +3,6 @@ import io from 'socket.io-client';
 import { 
   Send, 
   Users, 
-  Settings, 
   Shield, 
   UserMinus, 
   Ban,
