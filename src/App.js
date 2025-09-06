@@ -10,7 +10,10 @@ import {
   MessageCircle,
   LogOut,
   Eye,
-  EyeOff
+  EyeOff,
+  Settings,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import './App.css';
 
@@ -28,7 +31,7 @@ function App() {
   const [userRole, setUserRole] = useState('user');
   const messagesEndRef = useRef(null);
 
-  const ROOT_MASTER_ID = 'root_master_2024'; // This would be your unique ID
+  const ROOT_MASTER_ID = 'root_master_2024'; // Your unique master ID
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
@@ -49,7 +52,7 @@ function App() {
     newSocket.on('userJoined', (data) => {
       setMessages(prev => [...prev, {
         username: 'System',
-        message: `${data.username} joined the room`,
+        message: `✨ ${data.username} joined the realm`,
         timestamp: new Date(),
         type: 'system'
       }]);
@@ -58,7 +61,7 @@ function App() {
     newSocket.on('userLeft', (data) => {
       setMessages(prev => [...prev, {
         username: 'System',
-        message: `${data.username} left the room`,
+        message: `👋 ${data.username} left the realm`,
         timestamp: new Date(),
         type: 'system'
       }]);
@@ -69,14 +72,14 @@ function App() {
         setIsConnected(false);
         setMessages(prev => [...prev, {
           username: 'System',
-          message: 'You have been expelled from the room',
+          message: '⚡ You have been expelled by the Root Master',
           timestamp: new Date(),
           type: 'error'
         }]);
       } else {
         setMessages(prev => [...prev, {
           username: 'System',
-          message: `${data.username} was expelled from the room`,
+          message: `⚡ ${data.username} was expelled by Root Master`,
           timestamp: new Date(),
           type: 'system'
         }]);
@@ -86,7 +89,7 @@ function App() {
     newSocket.on('userBanned', (data) => {
       setMessages(prev => [...prev, {
         username: 'System',
-        message: `${data.username} was banned from the room`,
+        message: `🔥 ${data.username} was banned by Root Master`,
         timestamp: new Date(),
         type: 'system'
       }]);
@@ -170,7 +173,7 @@ function App() {
   const getRoleIcon = (role) => {
     switch (role) {
       case 'root_master':
-        return <Crown size={16} className="role-icon root-master" />;
+        return <Crown size={16} className="role-icon root-master glow-orange" />;
       case 'admin':
         return <Shield size={16} className="role-icon admin" />;
       default:
@@ -189,14 +192,35 @@ function App() {
     }
   };
 
+  const createParticles = () => {
+    return Array.from({ length: 15 }, (_, i) => (
+      <div
+        key={i}
+        className="particle"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          width: `${Math.random() * 4 + 2}px`,
+          height: `${Math.random() * 4 + 2}px`,
+          animationDelay: `${Math.random() * 6}s`,
+          animationDuration: `${6 + Math.random() * 4}s`
+        }}
+      />
+    ));
+  };
+
   if (!isConnected) {
     return (
       <div className="login-container">
-        <div className="login-card">
+        <div className="particles">{createParticles()}</div>
+        <div className="login-card glow-orange">
           <div className="login-header">
-            <MessageCircle size={32} className="login-icon" />
+            <div className="login-icon-container">
+              <MessageCircle size={40} className="login-icon" />
+              <Sparkles size={24} className="sparkle-icon" />
+            </div>
             <h1>Aesthetic Chat</h1>
-            <p>Enter your credentials to join the conversation</p>
+            <p>Enter the Orange Master Realm</p>
           </div>
           
           <div className="login-form">
@@ -224,15 +248,17 @@ function App() {
               />
             </div>
             
-            <button onClick={joinRoom} className="join-btn">
-              Join Room
+            <button onClick={joinRoom} className="join-btn glow-orange">
+              <Zap size={18} />
+              Join Realm
             </button>
           </div>
           
           {username === ROOT_MASTER_ID && (
-            <div className="root-master-indicator">
-              <Crown size={16} />
-              <span>Root Master Access Detected</span>
+            <div className="root-master-indicator glow-orange-intense">
+              <Crown size={18} />
+              <span>🔥 Root Master Access Detected</span>
+              <Sparkles size={16} />
             </div>
           )}
         </div>
@@ -242,31 +268,34 @@ function App() {
 
   return (
     <div className="chat-container">
+      <div className="particles">{createParticles()}</div>
+      
       <div className="chat-header">
         <div className="room-info">
-          <MessageCircle size={24} />
+          <MessageCircle size={28} />
           <div>
             <h2>#{room}</h2>
-            <span className="user-count">{users.length} members</span>
+            <span className="user-count">👥 {users.length} members online</span>
           </div>
         </div>
         
         <div className="header-actions">
           {userRole === 'root_master' && (
-            <div className="root-master-badge">
-              <Crown size={16} />
+            <div className="root-master-badge glow-orange">
+              <Crown size={18} />
               <span>Root Master</span>
+              <Sparkles size={14} />
             </div>
           )}
           <button 
             onClick={() => setShowUserList(!showUserList)}
             className="action-btn"
-            title="Toggle user list"
+            title="Toggle member list"
           >
-            {showUserList ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showUserList ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
-          <button onClick={leaveRoom} className="action-btn leave-btn" title="Leave room">
-            <LogOut size={18} />
+          <button onClick={leaveRoom} className="action-btn leave-btn" title="Leave realm">
+            <LogOut size={20} />
           </button>
         </div>
       </div>
@@ -281,16 +310,17 @@ function App() {
                     <div className="message-user">
                       {getRoleIcon(msg.role)}
                       <span 
-                        className="username" 
+                        className={`username ${msg.role === 'root_master' ? 'root-master-text' : ''}`}
                         style={{ color: getRoleColor(msg.role) }}
                       >
                         {msg.username}
                       </span>
+                      {msg.role === 'root_master' && <Sparkles size={12} className="username-sparkle" />}
                     </div>
                     <span className="timestamp">{formatTime(msg.timestamp)}</span>
                   </div>
                 )}
-                <div className="message-content">
+                <div className={`message-content ${msg.role === 'root_master' ? 'root-master-message' : ''}`}>
                   {msg.message}
                 </div>
               </div>
@@ -302,21 +332,23 @@ function App() {
         {showUserList && (
           <div className="user-list">
             <div className="user-list-header">
-              <Users size={18} />
+              <Users size={20} />
               <span>Members ({users.length})</span>
+              <Sparkles size={16} className="list-sparkle" />
             </div>
             <div className="users">
               {users.map((user, index) => (
-                <div key={index} className="user-item">
+                <div key={index} className={`user-item ${user.role === 'root_master' ? 'root-master-user' : ''}`}>
                   <div className="user-info">
                     {getRoleIcon(user.role)}
                     <span 
-                      className="user-name"
+                      className={`user-name ${user.role === 'root_master' ? 'root-master-text' : ''}`}
                       style={{ color: getRoleColor(user.role) }}
                     >
                       {user.username}
                     </span>
                     {user.username === username && <span className="you-indicator">(You)</span>}
+                    {user.role === 'root_master' && <Sparkles size={12} className="user-sparkle" />}
                   </div>
                   
                   {userRole === 'root_master' && user.username !== ROOT_MASTER_ID && user.username !== username && (
@@ -324,16 +356,16 @@ function App() {
                       <button 
                         onClick={() => expelUser(user.username)}
                         className="user-action-btn expel"
-                        title="Expel user"
+                        title="⚡ Expel user"
                       >
-                        <UserMinus size={14} />
+                        <UserMinus size={16} />
                       </button>
                       <button 
                         onClick={() => banUser(user.username)}
                         className="user-action-btn ban"
-                        title="Ban user"
+                        title="🔥 Ban user"
                       >
-                        <Ban size={14} />
+                        <Ban size={16} />
                       </button>
                     </div>
                   )}
@@ -348,14 +380,14 @@ function App() {
         <input
           type="text"
           name="message"
-          placeholder="Type a message..."
+          placeholder="Type your message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           className="message-input"
         />
-        <button onClick={sendMessage} className="send-btn">
-          <Send size={20} />
+        <button onClick={sendMessage} className="send-btn glow-orange">
+          <Send size={22} />
         </button>
       </div>
     </div>

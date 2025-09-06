@@ -73,7 +73,7 @@ function removeUserFromRoom(roomName, socketId) {
 }
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('🔗 User connected:', socket.id);
 
   socket.on('joinRoom', (data) => {
     const { username, room, role } = data;
@@ -82,7 +82,7 @@ io.on('connection', (socket) => {
     if (isUserBanned(room, username)) {
       socket.emit('message', {
         username: 'System',
-        message: 'You are banned from this room',
+        message: '🚫 You are banned from this realm',
         timestamp: new Date(),
         type: 'error'
       });
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
     if (existingUser) {
       socket.emit('message', {
         username: 'System',
-        message: 'Username already taken in this room',
+        message: '⚠️ Username already taken in this realm',
         timestamp: new Date(),
         type: 'error'
       });
@@ -114,9 +114,13 @@ io.on('connection', (socket) => {
     addUserToRoom(room, userInfo);
 
     // Send welcome message to user
+    const welcomeMsg = username === ROOT_MASTER_ID 
+      ? `👑 Welcome back, Root Master! You have entered realm #${room}` 
+      : `✨ Welcome to realm #${room}!`;
+      
     socket.emit('message', {
       username: 'System',
-      message: `Welcome to room #${room}!`,
+      message: welcomeMsg,
       timestamp: new Date(),
       type: 'system'
     });
@@ -128,7 +132,7 @@ io.on('connection', (socket) => {
     const updatedUsers = getRoomUsers(room);
     io.to(room).emit('userList', updatedUsers);
 
-    console.log(`${username} joined room ${room}`);
+    console.log(`✅ ${username} joined realm ${room} as ${userInfo.role}`);
   });
 
   socket.on('chatMessage', (data) => {
@@ -143,7 +147,7 @@ io.on('connection', (socket) => {
     };
 
     io.to(room).emit('message', messageData);
-    console.log(`Message in ${room} from ${username}: ${message}`);
+    console.log(`💬 Message in ${room} from ${username}: ${message}`);
   });
 
   socket.on('expelUser', (data) => {
@@ -153,12 +157,14 @@ io.on('connection', (socket) => {
     const roomUsers = getRoomUsers(room);
     const requestingUser = roomUsers.find(user => user.socketId === socket.id);
     
+    // Security: Only root master can expel, and cannot expel themselves or other root masters
     if (!requestingUser || requestingUser.role !== 'root_master') {
-      return; // Not authorized
+      console.log(`🚫 Unauthorized expel attempt by ${requestingUser?.username || 'unknown'}`);
+      return;
     }
 
-    // Prevent self-expulsion and expelling root master
     if (targetUsername === requestingUser.username || targetUsername === ROOT_MASTER_ID) {
+      console.log(`🚫 Root Master protection: Cannot expel ${targetUsername}`);
       return;
     }
 
@@ -181,7 +187,7 @@ io.on('connection', (socket) => {
       const updatedUsers = getRoomUsers(room);
       io.to(room).emit('userList', updatedUsers);
       
-      console.log(`${targetUsername} was expelled from ${room} by ${requestingUser.username}`);
+      console.log(`⚡ ${targetUsername} was expelled from ${room} by Root Master ${requestingUser.username}`);
     }
   });
 
@@ -192,12 +198,14 @@ io.on('connection', (socket) => {
     const roomUsers = getRoomUsers(room);
     const requestingUser = roomUsers.find(user => user.socketId === socket.id);
     
+    // Security: Only root master can ban, and cannot ban themselves or other root masters
     if (!requestingUser || requestingUser.role !== 'root_master') {
-      return; // Not authorized
+      console.log(`🚫 Unauthorized ban attempt by ${requestingUser?.username || 'unknown'}`);
+      return;
     }
 
-    // Prevent self-ban and banning root master
     if (targetUsername === requestingUser.username || targetUsername === ROOT_MASTER_ID) {
+      console.log(`🚫 Root Master protection: Cannot ban ${targetUsername}`);
       return;
     }
 
@@ -223,7 +231,7 @@ io.on('connection', (socket) => {
     const updatedUsers = getRoomUsers(room);
     io.to(room).emit('userList', updatedUsers);
     
-    console.log(`${targetUsername} was banned from ${room} by ${requestingUser.username}`);
+    console.log(`🔥 ${targetUsername} was banned from ${room} by Root Master ${requestingUser.username}`);
   });
 
   socket.on('leaveRoom', (data) => {
@@ -239,7 +247,7 @@ io.on('connection', (socket) => {
     const updatedUsers = getRoomUsers(room);
     io.to(room).emit('userList', updatedUsers);
 
-    console.log(`${username} left room ${room}`);
+    console.log(`👋 ${username} left realm ${room}`);
   });
 
   socket.on('disconnect', () => {
@@ -256,18 +264,19 @@ io.on('connection', (socket) => {
         const updatedUsers = getRoomUsers(roomName);
         io.to(roomName).emit('userList', updatedUsers);
         
-        console.log(`${user.username} disconnected from ${roomName}`);
+        console.log(`🔌 ${user.username} disconnected from ${roomName}`);
         break;
       }
     }
     
-    console.log('User disconnected:', socket.id);
+    console.log('🔗 User disconnected:', socket.id);
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Aesthetic Chat Server running on port ${PORT}`);
-  console.log(`🔑 Root Master ID: ${ROOT_MASTER_ID}`);
+  console.log(`🚀 Orange Master Chat Server running on port ${PORT}`);
+  console.log(`👑 Root Master ID: ${ROOT_MASTER_ID}`);
+  console.log(`🔥 Enhanced Orange Theme Active`);
 });
