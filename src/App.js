@@ -11,7 +11,6 @@ import {
   LogOut,
   Eye,
   EyeOff,
-  Settings,
   Sparkles,
   Zap
 } from 'lucide-react';
